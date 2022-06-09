@@ -1,0 +1,75 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  buildFirst: # job 1 identifier 
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+      
+  deploy: # job 2 identifier 
+      name: Deploy
+      needs: buildFirst 
+      runs-on: ubuntu-latest
+    # the build job must succeed in order to run this job
+      steps:
+       - name: Upload production-ready build files
+         uses: actions/checkout@v3
+       - name: Setup JDK
+         uses: actions/setup-java@v3
+         with:
+            java-version: '11'
+            distribution: 'adopt'
+       - run: mvn --batch-mode --update-snapshots verify
+       - run: mkdir staging && cp target/*.jar staging
+       - uses: actions/upload-artifact@v3
+         with:
+              name: Package
+              path: staging
+              
+  buildThird: # job 3 identifier 
+    needs: buildFirst
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+              
+              
+  buildfourth: # job 4 identifier 
+    needs: [buildFirst, buildThird]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+      
