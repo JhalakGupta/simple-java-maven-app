@@ -11,5 +11,3 @@ jobs:
       - name: Run pull request stats
         uses: flowwer-dev/pull-request-stats@v2.4.2
         
-
-
